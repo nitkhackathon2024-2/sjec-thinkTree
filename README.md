@@ -2,7 +2,7 @@
 
 | Name                      | Phone number     |
 | ------------------------- | ---------------- |
-| Mohammad Saheed  (Leader) | +91 78924 13750  |
+| Muhammad Saheed  (Leader) | +91 78924 13750  |
 | Nithin                    | +91 7975093136   |
 | Arshith Vaz               | +91 761 916 9300 |
 
