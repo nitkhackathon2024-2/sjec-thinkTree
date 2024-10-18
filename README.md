@@ -8,7 +8,7 @@
 
 
 ## Problem Statement
-3. Theme: Improving Work EDiciency
+3. Theme: Improving Work Efficiency
 3.1 Problem Statement: Knowledge Distiller App
 
 ## Instructions on running your project
