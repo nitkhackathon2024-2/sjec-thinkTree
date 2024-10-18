@@ -1,9 +1,0 @@
-fastapi
-uvicorn
-pypdf
-asyncpg
-pgvector
-ollama
-python-dotenv
-multipart
-semantic-text-splitter
