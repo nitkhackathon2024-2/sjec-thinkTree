@@ -12,6 +12,22 @@
 3.1 Problem Statement: Knowledge Distiller App
 
 ## Instructions on running your project
-Provide detailed steps to get your project up and running, including any dependencies
+Setup pgvector
+```
+$ docker run -d --name pgvec -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e PGDATA=/var/lib/postgresql/data/pgdata -p 5432:5432 docker.io/pgvector/pgvector:pg17
+```
+Setup ollama
+```
+$ ollama server
+$ ollama pull llama3.2
+$ ollama pull nomic-embed-text
+```
+
+Run nextjs
+```
+$ cd code/think-tree
+$ bun install
+$ bun dev
+```
 
 ## References
