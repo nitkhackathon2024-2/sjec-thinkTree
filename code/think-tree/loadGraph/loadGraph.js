@@ -18,7 +18,6 @@ const colors = [
 const MAIN_NODE_SIZE = 40;
 const CHILD_NODE_SIZE = 15;
 const DEFAULT_DISTANCE = 90;
-const MAIN_NODE_DISTANCE = 90;
 const MANY_BODY_STRENGTH = -180;
 
 export let nodes = [];
@@ -52,8 +51,8 @@ const data = {
 
 export const loadGraph = () => {
   const svg = select("#container");
-  const width = +svg.attr("width");
-  const height = +svg.attr("height");
+  const width = +svg.attr("100%");
+  const height = +svg.attr("100%");
   const centerX = width / 2;
   const centerY = height / 2;
 
@@ -63,7 +62,23 @@ export const loadGraph = () => {
     if (node.group === "subject") color = colors[0][0];
     else if (node.group === "topic") color = colors[1][0];
     else if (node.group === "subtopic") color = colors[2][0];
-    return { ...node, size: MAIN_NODE_SIZE, color: color || "gray", showChildren: true };
+    return {
+      ...node,
+      size: MAIN_NODE_SIZE,
+      color: color || "gray",
+      showChildren: false, // Track visibility of children
+      children: [], // Will hold child nodes
+    };
+  });
+
+  // Build children relationships
+  nodes.forEach((node) => {
+    if (node.group === "topic" || node.group === "subtopic") {
+      const parentNode = nodes.find((n) => n.id === node.parent);
+      if (parentNode) {
+        parentNode.children.push(node.id); // Add child ID to the parent
+      }
+    }
   });
 
   // Modify sizes for children nodes
@@ -73,7 +88,7 @@ export const loadGraph = () => {
   });
 
   // Create links from data
-  links = data.links.map(link => ({
+  links = data.links.map((link) => ({
     source: link.source,
     target: link.target,
     distance: DEFAULT_DISTANCE,
@@ -87,19 +102,29 @@ export const loadGraph = () => {
     .force(
       "link",
       forceLink(links)
-        .id(function (d) {
-          return d.id;
-        })
+        .id((d) => d.id)
         .distance((link) => link.distance)
     )
     .force("center", forceCenter(centerX, centerY));
 
-  let dragInteraction = drag().on("drag", (event, node) => {
-    node.fx = event.x;
-    node.fy = event.y;
-    simulation.alpha(1);
-    simulation.restart();
-  });
+  let dragInteraction = drag()
+    .on("start", (event, node) => {
+      if (!event.active) simulation.alphaTarget(0.3).restart();
+      // Lock this node's position
+      node.fx = node.x;
+      node.fy = node.y;
+    })
+    .on("drag", (event, node) => {
+      // Update the node's position based on the drag
+      node.fx = event.x;
+      node.fy = event.y;
+    })
+    .on("end", (event, node) => {
+      if (!event.active) simulation.alphaTarget(0);
+      // Release the position locks
+      node.fx = null;
+      node.fy = null;
+    });
 
   svg.call(
     zoom().on("zoom", (event) => {
@@ -124,27 +149,28 @@ export const loadGraph = () => {
     .style("cursor", "pointer")
     .call(dragInteraction);
 
-  circles.on("mouseover", (event, node) => {
-    const tooltip = select("body")
-      .append("div")
-      .attr("class", "tooltip")
-      .style("position", "absolute")
-      .style("z-index", "10")
-      .style("background-color", "white")
-      .style("padding", "10px")
-      .style("border", "1px solid #ccc")
-      .style("border-radius", "5px")
-      .style("font-size", "14px")
-      .style("visibility", "visible")
-      .html(`Node: ${node.id}`);
+  circles
+    .on("mouseover", (event, node) => {
+      const tooltip = select("body")
+        .append("div")
+        .attr("class", "tooltip")
+        .style("position", "absolute")
+        .style("z-index", "10")
+        .style("background-color", "white")
+        .style("padding", "10px")
+        .style("border", "1px solid #ccc")
+        .style("border-radius", "5px")
+        .style("font-size", "14px")
+        .style("visibility", "visible")
+        .html(`Node: ${node.id}`);
 
-    tooltip
-      .style("top", `${event.pageY}px`)
-      .style("left", `${event.pageX + 10}px`);
-  })
-  .on("mouseout", () => {
-    select(".tooltip").remove();
-  });
+      tooltip
+        .style("top", `${event.pageY}px`)
+        .style("left", `${event.pageX + 10}px`);
+    })
+    .on("mouseout", () => {
+      select(".tooltip").remove();
+    });
 
   circles.on("click", (event, node) => {
     showHideChildren(node);
@@ -174,8 +200,40 @@ export const loadGraph = () => {
   });
 
   function showHideChildren(node) {
-    // Since you have a flat structure in `data`, implement child toggling logic if needed
-    console.log("Show/Hide children for node:", node);
-    // Implement logic to show/hide child nodes if you have a hierarchy
+    // Toggle the visibility of children nodes
+    node.showChildren = !node.showChildren;
+
+    // Find the child nodes based on the node's children
+    const childNodes = node.children.map((childId) =>
+      nodes.find((n) => n.id === childId)
+    );
+
+    // Determine which nodes to add or remove from the simulation
+    let updatedNodes = nodes.filter((n) => n.showChildren || n === node);
+
+    if (node.showChildren) {
+      childNodes.forEach((childNode) => {
+        if (!updatedNodes.includes(childNode)) {
+          updatedNodes.push(childNode);
+          // Release fixed positions for newly shown child nodes
+          childNode.fx = null;
+          childNode.fy = null;
+        }
+      });
+    } else {
+      childNodes.forEach((childNode) => {
+        const index = updatedNodes.indexOf(childNode);
+        if (index !== -1) {
+          updatedNodes.splice(index, 1);
+          // Ensure fixed positions are released for hidden child nodes
+          childNode.fx = null;
+          childNode.fy = null;
+        }
+      });
+    }
+
+    // Update the simulation with the modified list of nodes
+    simulation.nodes(updatedNodes);
+    simulation.alpha(1).restart();
   }
 };
