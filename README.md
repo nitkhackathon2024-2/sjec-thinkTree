@@ -1,5 +1,11 @@
 ## St.Joseph Engineering College - ThinkTree
-Provide details of team members 
+
+| Name                      | Phone number     |
+| ------------------------- | ---------------- |
+| Mohammad Saheed  (Leader) | +91 78924 13750  |
+| Nithin                    | +91 7975093136   |
+| Arshith Vaz               | +91 761 916 9300 |
+
 
 ## Problem Statement
 3. Theme: Improving Work EDiciency
