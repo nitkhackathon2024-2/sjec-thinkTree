@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { loadGraph } from "../../loadGraph/loadGraph";
+import Documents from "./Documents";
 
 export default function Home() {
   useEffect(() => {
@@ -9,8 +10,11 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="container">
-      <svg id="container" width="1060" height="960" viewBox="0 0 960 960"></svg>
-    </div>
+    <>
+      <div className="w-1/2 flex flex-col border-r border-gray-700 py-4 space-y-4">
+        <Documents />
+      </div>
+      <svg id="container"></svg>
+    </>
   );
 }
