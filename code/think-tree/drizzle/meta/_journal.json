@@ -8,6 +8,13 @@
       "when": 1729229505458,
       "tag": "0000_hard_the_anarchist",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1729236266219,
+      "tag": "0001_open_ogun",
+      "breakpoints": true
     }
   ]
 }
