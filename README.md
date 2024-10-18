@@ -1,8 +1,9 @@
-## College Name - Team Name
+## St.Joseph Engineering College - ThinkTree
 Provide details of team members 
 
 ## Problem Statement
-Provide description of which Theme and Problem statement you are attempting
+3. Theme: Improving Work EDiciency
+3.1 Problem Statement: Knowledge Distiller App
 
 ## Instructions on running your project
 Provide detailed steps to get your project up and running, including any dependencies
