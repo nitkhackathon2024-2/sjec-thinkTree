@@ -62,7 +62,6 @@ const styles = {
     alignItems: 'center',
   },
   rightSection: {
-    position: isAbsolute,
     width: '50%', // Right section takes up half the screen
     backgroundColor: '#fff', // Light background for the ForceGraph
     color: 'black',
