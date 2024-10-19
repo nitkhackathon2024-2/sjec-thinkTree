@@ -70,7 +70,7 @@ const ForceDirectedGraph: React.FC<ForceDirectedGraphProps> = ({ data }) => {
     // Add circles for nodes.
     const node = nodeGroup.append("circle")
       .attr("r", 5)
-      .attr("fill", (d) => color(d.group));
+      .attr("fill", (d) => color(d.group.toString()));
 
     // Add titles for node hover.
     node.append("title").text((d) => d.id);
@@ -80,7 +80,7 @@ const ForceDirectedGraph: React.FC<ForceDirectedGraphProps> = ({ data }) => {
       .text((d) => d.id)
       .attr('x', 6)
       .attr('y', 3)
-      .attr('fill',(d) => color(d.group));
+      .attr('fill', (d) => color(d.group.toString()));
 
     // Add a drag behavior.
     node.call(d3.drag<SVGGElement, Node>()

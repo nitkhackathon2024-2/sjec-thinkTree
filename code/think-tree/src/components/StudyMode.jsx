@@ -6,6 +6,7 @@ const StudyMode = ({ data }) => {
   const tooltipRef = useRef();
   const [visibleNodes, setVisibleNodes] = useState([]); // Start with no nodes
   const [clickedNode, setClickedNode] = useState(null);
+  console.log(clickedNode)
 
   useEffect(() => {
     // Fetch initial nodes from FastAPI
@@ -116,12 +117,12 @@ const StudyMode = ({ data }) => {
     // Handle simulation tick
     simulation.on('tick', () => {
       node.attr('cx', d => d.x)
-          .attr('cy', d => d.y);
+        .attr('cy', d => d.y);
 
       link.attr('x1', d => d.source.x)
-          .attr('y1', d => d.source.y)
-          .attr('x2', d => d.target.x)
-          .attr('y2', d => d.target.y);
+        .attr('y1', d => d.source.y)
+        .attr('x2', d => d.target.x)
+        .attr('y2', d => d.target.y);
     });
 
     // Hide tooltip when clicking outside
@@ -142,7 +143,7 @@ const StudyMode = ({ data }) => {
 
   return (
     <div style={{ position: 'relative', height: '100vh' }}>
-      <svg ref={svgRef} style={{ position: 'absolute', top: 0, right: 0 }}></svg>
+      <svg ref={svgRef} style={{ /* position: 'absolute', top: 0, right: 0 */ }}></svg>
       <div
         ref={tooltipRef}
         style={{

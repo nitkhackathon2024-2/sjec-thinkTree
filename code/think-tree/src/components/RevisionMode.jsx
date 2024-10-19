@@ -5,12 +5,13 @@ const RevisionMode = ({ data }) => {
   const svgRef = useRef();
   const tooltipRef = useRef();
   const [clickedNode, setClickedNode] = useState(null);
+  console.log(clickedNode)
 
   useEffect(() => {
     // Clear any previous graph when component is mounted
     d3.select(svgRef.current).selectAll('*').remove();
 
-    const width = (window.innerWidth)/2; // Fixed width
+    const width = (window.innerWidth) / 2; // Fixed width
     const height = window.innerHeight; // Match height to screen
 
     const svg = d3.select(svgRef.current)
@@ -103,8 +104,8 @@ const RevisionMode = ({ data }) => {
   }, [data]);
 
   return (
-    <div style={{ position: 'relative', height: '100vh' }}>
-      <svg ref={svgRef} style={{ position: 'absolute', top: 0, right: 0 }}></svg>
+    <div style={{ /* position: 'relative', height: '100vh' */ }}>
+      <svg ref={svgRef} style={{ /* position: 'absolute', top: 0, right: 0 */ }}></svg>
       <div
         ref={tooltipRef}
         style={{
