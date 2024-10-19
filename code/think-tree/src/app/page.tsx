@@ -1,7 +1,4 @@
-import Documents from "./Documents";
-import KnowledgeGraph from "./KnowledgeGraph"
 import ForceGraph from "../components/forcegraph"
-import FileUploadSection from "../components/uploader"
 import { db } from '@/db/index'
 import { sql } from 'drizzle-orm';
 
