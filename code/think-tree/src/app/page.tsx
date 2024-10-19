@@ -1,56 +1,77 @@
-
 import Documents from "./Documents";
 import KnowledgeGraph from "./KnowledgeGraph"
 import ForceGraph from "../components/forcegraph"
 import FileUploadSection from "../components/uploader"
+import { db } from '@/db/index'
+import { sql } from 'drizzle-orm';
 
-const data = {
-  nodes: [
-    { id: 1, name: 'Node A', text: 'This is Node A', link: 'https://www.youtube.com' },
-    { id: 2, name: 'Node B', text: 'This is Node B', link: 'https://www.google.com' },
-    { id: 3, name: 'Node C', text: 'This is Node C', link: 'https://www.github.com' },
-    { id: 4, name: 'Node D', text: 'This is Node D', link: 'https://www.wikipedia.org' },
-    { id: 5, name: 'Node E', text: 'This is Node E', link: 'https://www.stackoverflow.com' },
-    { id: 6, name: 'Node F', text: 'This is Node F', link: 'https://www.reddit.com' },
-    { id: 7, name: 'Node G', text: 'This is Node G', link: 'https://www.medium.com' },
-    { id: 8, name: 'Node H', text: 'This is Node H', link: 'https://www.netflix.com' },
-    { id: 9, name: 'Node I', text: 'This is Node I', link: 'https://www.apple.com' },
-    { id: 10, name: 'Node J', text: 'This is Node J', link: 'https://www.microsoft.com' },
-    { id: 11, name: 'Node K', text: 'This is Node K', link: 'https://www.github.com' },
-    { id: 12, name: 'Node L', text: 'This is Node L', link: 'https://www.google.com' },
-    { id: 13, name: 'Node M', text: 'This is Node M', link: 'https://www.youtube.com' }
-  ],
-  links: [
-    { source: 1, target: 2 },
-    { source: 1, target: 3 },
-    { source: 2, target: 4 },
-    { source: 2, target: 5 },
-    { source: 3, target: 6 },
-    { source: 3, target: 7 },
-    { source: 4, target: 8 },
-    { source: 5, target: 9 },
-    { source: 6, target: 10 },
-    { source: 7, target: 11 },
-    { source: 8, target: 12 },
-    { source: 9, target: 13 }
-  ]
-};
-export default function Home() {
-  
+export default async function Home() {
+  const linkQuery = sql`
+  WITH similar_chunks AS (
+    SELECT 
+      c1.id AS source_id,
+      c2.id AS target_id,
+      c1.content AS source_content,
+      c2.content AS target_content,
+      d1.source AS source_document,
+      d2.source AS target_document,
+      c1.chunk_index AS source_index,
+      c2.chunk_index AS target_index
+    FROM chunks c1
+    JOIN chunks c2 ON c1.id <> c2.id
+    JOIN documents d1 ON c1.document_id = d1.id
+    JOIN documents d2 ON c2.document_id = d2.id
+    ORDER BY c1.embedding <-> c2.embedding -- Cosine similarity
+  )
+  SELECT 
+    source_id, 
+    source_content,
+    target_id, 
+    target_content
+  FROM similar_chunks
+`;
+
+  const links = await db.execute(linkQuery);
+
+  const nodesQuery = sql`
+  WITH similar_chunks AS (
+    SELECT 
+      c1.id AS chunk_id,
+      c1.content AS chunk_content,
+      d1.source AS source_name
+    FROM chunks c1
+    JOIN chunks c2 ON c1.id <> c2.id
+    JOIN documents d1 ON c1.document_id = d1.id
+    ORDER BY c1.embedding <-> c2.embedding -- Cosine similarity
+  )
+  SELECT DISTINCT
+    chunk_id AS id, 
+    source_name AS name,
+    chunk_content AS text
+  FROM similar_chunks
+`;
+
+  // Execute the query using your database connection
+  const nodes = await db.execute(nodesQuery);
+
+  const data = {
+    nodes: nodes.rows.map(row => ({ id: row.id, name: row.name, text: row.text, link: '' })),
+    links: links.rows.map(row => ({ source: row.source_id, target: row.target_id }))
+  };
 
   return (
     <>
-    <div>
-    <ForceGraph data = {data}/>
-    {/* <FileUploadSection/> */}
-      
+      <div>
+        <ForceGraph data={data} />
+        {/* <FileUploadSection/> */}
+
 
       </div>
       {/* <div className="w-1/2 flex flex-col border-r border-gray-700 py-4 space-y-4">
         <Documents />
       </div>
       <KnowledgeGraph /> */}
-      
+
     </>
   );
 }
