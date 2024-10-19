@@ -2,14 +2,44 @@ from fastapi import FastAPI, HTTPException, File, UploadFile
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
+from semantic_text_splitter import TextSplitter
 from typing import List
+from pathlib import Path
 from pypdf import PdfReader
+from dotenv import load_dotenv
 import json
 import os
 import shutil
 import requests
+import ollama, asyncpg, os
 
-app = FastAPI()
+# File path for storing visible nodes
+DATA_FILE = 'node_history.json'
+env_path = Path("../code/think-tree/.env")
+load_dotenv(dotenv_path=env_path)
+
+DATABASE_URL = os.getenv('DATABASE_URL')
+OLLAMA_URL = os.getenv("OLLAMA_URL")
+LLM = os.getenv("LLM")
+# Global variable to hold the connection
+db_connection = None
+
+async def lifespan(app: FastAPI):
+    global db_connection
+    # On startup: Establish the database connection
+    try:
+        db_connection = await asyncpg.connect(DATABASE_URL)
+        print("Database connection established")
+    except Exception as e:
+        print(f"Failed to connect to the database: {e}")
+        db_connection = None
+    yield  # The application runs while this context is active
+    # On shutdown: Close the database connection
+    if db_connection:
+        await db_connection.close()
+        print("Database connection closed")
+# Create the FastAPI app using the lifespan manager
+app = FastAPI(lifespan=lifespan)
 
 origins = ["*"]
 
@@ -20,9 +50,6 @@ app.add_middleware(
     allow_methods=["*"],  # Allow all HTTP methods
     allow_headers=["*"],  # Allow all headers
 )
-
-# File path for storing visible nodes
-DATA_FILE = 'node_history.json'
 
 def extract_text_from_pdf(file: UploadFile):
     try:
@@ -36,7 +63,38 @@ def extract_text_from_pdf(file: UploadFile):
         return text
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error extracting text from PDF: {str(e)}")
-
+def get_chunks(pdf_file_path):
+    max_characters = 1000
+    text = ""
+    splitter = TextSplitter(max_characters, trim=False)
+    
+    # Read PDF content
+    reader = PdfReader(pdf_file_path)
+    for page in reader.pages:
+        text += page.extract_text()
+    
+    # Chunking
+    chunks = splitter.chunks(text)
+    return chunks
+# Save document metadata and chunks with embeddings into the database
+async def save_to_db(chunks, file_name, description):
+    try:
+        global db_connection
+        # Insert into documents table
+        document_id = await db_connection.fetchval("""
+            INSERT INTO documents (source, description) 
+            VALUES ($1, $2) 
+            RETURNING id
+        """, file_name, description)
+        
+        # Insert each chunk with its embedding into the chunks table
+        for idx, (chunk) in enumerate(zip(chunks)):
+            await db_connection.execute("""
+                INSERT INTO chunks (document_id, chunk_index, content, ) 
+                VALUES ($1, $2, $3, $4)
+            """, document_id, idx, chunk)
+    except Exception as e:
+        print(f"Error during database operation: {str(e)}")
 # Pydantic model for the node
 class Node(BaseModel):
     id: int
@@ -107,21 +165,9 @@ async def upload_file(file: UploadFile = File(...)):
         file_metadata = {"id": len(uploaded_files) + 1, "name": file.filename}
         uploaded_files.append(file_metadata)
         # Read the content of the uploaded text file
-
-        if file.filename.endswith(".pdf"):
-        # raise HTTPException(status_code=400, detail="Only PDF files are supported.")
-    
-            # Extract text from the uploaded PDF file
-            pdf_text = extract_text_from_pdf(file)  
-            # You can now use pdf_text in your logic
-            # print(f"PDF content: {pdf_text} i was here")   
-            # Make another POST request to '/somewhere/' with the PDF text
-            response = requests.post('http://localhost:8000/somewhere/', json={"pdf_content": pdf_text})    
-            # Check if the request was successful
-            if response.status_code == 200:
-                return JSONResponse(content={"message": "PDF uploaded and forwarded successfully"}, status_code=200)
-            else:
-                return JSONResponse(content={"message": "Failed to forward data"}, status_code=response.status_code)
+        chuncks = get_chunks(file_location)
+        await save_to_db(chuncks,  file.filename, "PDF document")
+        return("Successful")
     
 
     except Exception as e:

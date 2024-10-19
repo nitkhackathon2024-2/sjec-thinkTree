@@ -1,3 +1,4 @@
+
 import Documents from "./Documents";
 import KnowledgeGraph from "./KnowledgeGraph"
 import ForceGraph from "../components/forcegraph"
@@ -35,12 +36,14 @@ const data = {
   ]
 };
 export default function Home() {
+  
 
   return (
     <>
     <div>
-    <FileUploadSection/>
-      <ForceGraph data = {data}/>
+    <ForceGraph data = {data}/>
+    {/* <FileUploadSection/> */}
+      
 
       </div>
       {/* <div className="w-1/2 flex flex-col border-r border-gray-700 py-4 space-y-4">
