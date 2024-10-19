@@ -16,9 +16,10 @@ Setup pgvector
 ```
 $ docker run -d --name pgvec -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e PGDATA=/var/lib/postgresql/data/pgdata -p 5432:5432 docker.io/pgvector/pgvector:pg17
 ```
+
 Setup ollama
 ```
-$ ollama server
+$ ollama serve
 $ ollama pull llama3.2
 $ ollama pull nomic-embed-text
 ```
@@ -26,8 +27,21 @@ $ ollama pull nomic-embed-text
 Run nextjs
 ```
 $ cd code/think-tree
+$ cp .env.example .env
 $ bun install
+$ bunx drizzle-kit migrate
 $ bun dev
 ```
+
+Setup the python API
+```
+$ cd code/APIs
+$ python -m venv .venv
+$ source ./.venv/bin/activate
+$ pip install -r requirements.txt
+$ python -m uvicorn main:app --reload
+```
+
+Visit localhost:3000
 
 ## References
