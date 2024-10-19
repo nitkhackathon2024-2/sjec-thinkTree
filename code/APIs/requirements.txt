@@ -1,4 +1,4 @@
-arandr==0.1.11
+arandr
 attrs==23.2.1.dev0
 autocommand==2.2.2
 btrfsutil==6.10
